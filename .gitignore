@@ -1,0 +1,4 @@
+# ignore InfluxDB data
+influxdb/*
+# ignore Telegraf debug data
+telegraf/*

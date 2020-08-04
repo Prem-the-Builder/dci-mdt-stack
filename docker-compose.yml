@@ -1,0 +1,53 @@
+version: "3"
+
+services:
+        
+
+  influxdb:
+        restart: unless-stopped
+        image: influxdb
+        container_name: influxdb_dci        
+        environment:
+        # only for external config file
+        #       - "INFLUXD_CONFIG_PATH=${APP_FOLDER}/etc/influxdb/influxdb.conf"  
+                - "INFLUXDB_REPORTING_DISABLED=true"
+                - "INFLUXDB_DATA_QUERY_LOG_ENABLED=false"
+                - "INFLUXDB_HTTP_LOG_ENABLED=false"
+                - "INFLUXDB_CONTINUOUS_QUERIES_LOG_ENABLED=false"
+                - "INFLUXDB_HTTP_AUTH_ENABLED=false"      
+        volumes:
+                - ${APP_FOLDER}/influxdb:/var/lib/influxdb
+        ports:
+                - "${INFLUXDB_PORT}:8086"
+
+
+  telegraf:
+        restart: unless-stopped
+        image: telegraf
+        container_name: telegraf_dci
+        depends_on:
+                - influxdb
+        network_mode: "service:influxdb"
+        command: telegraf --config ${APP_FOLDER}/etc/telegraf/telegraf.conf
+        env_file:
+                - telegraf-var.env
+        volumes:
+                - ${APP_FOLDER}/etc/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+  # Folder for storing debug logs from telegraf
+                - ${APP_FOLDER}/telegraf:/tmp
+
+                
+  grafana:
+        restart: unless-stopped
+        image: grafana/grafana
+        container_name: grafana_dci
+        environment:
+                - "GF_INSTALL_PLUGINS=jdbranham-diagram-panel"
+                - "GF_SECURITY_ADMIN_PASSWORD=admin"
+                - "INFLUXDB_SOCKET=http://${DOCKER_IP}:${INFLUXDB_PORT}"
+        volumes:
+                - ${APP_FOLDER}/grafana/provisioning:/etc/grafana/provisioning:ro
+                - ${APP_FOLDER}/grafana/etc/dashboards:/etc/dashboards:ro
+        ports:
+                - "${GRAFANA_PORT}:3000"
+
