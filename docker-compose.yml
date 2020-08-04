@@ -8,8 +8,6 @@ services:
         image: influxdb
         container_name: influxdb_dci        
         environment:
-        # only for external config file
-        #       - "INFLUXD_CONFIG_PATH=${APP_FOLDER}/etc/influxdb/influxdb.conf"  
                 - "INFLUXDB_REPORTING_DISABLED=true"
                 - "INFLUXDB_DATA_QUERY_LOG_ENABLED=false"
                 - "INFLUXDB_HTTP_LOG_ENABLED=false"
